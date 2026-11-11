@@ -264,8 +264,7 @@ int main() {
         printf("4 - Excluir produto\n");
         printf("5 - Buscar por nome\n");
         printf("6 - Buscar por categoria\n");
-        printf("7 - Listar ordenado por nome (Bubble Sort)\n");
-        printf("8 - Comprar produto\n");
+        printf("7 - Comprar produto\n");
         printf("0 - Sair\n");
         printf("Escolha: ");
         scanf("%d", &opcao);
@@ -278,8 +277,7 @@ int main() {
             case 4: excluir(); break;
             case 5: buscar(1); break;       // busca por nome
             case 6: buscar(2); break;       // busca por categoria
-            case 7: ordenar(); break;
-            case 8: comprar(); break;
+            case 7: comprar(); break;
             case 0: printf("Sair\n"); break;
             default: printf("Opcao nao encontrada\n");
         }
