@@ -7,7 +7,6 @@ float preco[100];
 int quantidade[100];
 int total = 0;
 
-// Joga fora o que sobrou digitado na linha (evita o scanf "pular" a proxima pergunta)
 void limparBuffer() {
     int c;
     c = getchar();
@@ -16,7 +15,6 @@ void limparBuffer() {
     }
 }
 
-// Le o preco como texto, troca virgula por ponto e converte para numero
 float lerPreco() {
     char texto[20];
     int i;
