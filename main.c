@@ -8,7 +8,7 @@ char categoria[100][30];  // categorias dos produtos
 float preco[100];         // precos dos produtos
 int quantidade[100];      // quantidades em estoque
 int total = 0;            // quantidade de produtos cadastrados
-int proximoId = 1;        // proximo ID automatico
+int proximoId = 1;        // proximo ID automatico (nunca reutiliza IDs excluidos)
 
 void limparBuffer() {
     int c;
@@ -41,6 +41,7 @@ void salvar() {
         printf("Erro no arquivo\n");
         return;
     }
+    fprintf(arq, "%d\n", proximoId);        // 1a linha: proximo ID (guarda os excluidos)
     for (i = 0; i < total; i++) {           // grava um produto por linha
         fprintf(arq, "%d %s %s %.2f %d\n", codigo[i], nome[i], categoria[i], preco[i], quantidade[i]);
     }
@@ -53,23 +54,15 @@ void carregar() {
     total = 0;
     proximoId = 1;
     arq = fopen("mercado.txt", "r");        // abre para leitura
-    if (arq == NULL) {
+    if (arq == NULL) {                      // arquivo nao existe:
+        salvar();                           // cria o arquivo vazio automaticamente
         return;
     }
+    fscanf(arq, "%d", &proximoId);          // le o proximo ID salvo
     while (total < 100 && fscanf(arq, "%d %s %s %f %d", &codigo[total], nome[total], categoria[total], &preco[total], &quantidade[total]) == 5) {
-        if (codigo[total] >= proximoId) {   // acha o maior codigo
-            proximoId = codigo[total] + 1;  // proximo ID = maior + 1
-        }
         total++;
     }
     fclose(arq);
-}
-
-void criarArquivo() {
-    total = 0;                              // zera a lista
-    proximoId = 1;                          // reinicia os IDs
-    salvar();                               // grava arquivo vazio
-    printf("Arquivo criado vazio!\n");
 }
 
 // Mostra em tabela os produtos cujos indices estao em idx[] (nao altera o arquivo)
@@ -189,7 +182,7 @@ void excluir() {
                 quantidade[j] = quantidade[j + 1];
             }
             total--;
-            salvar();
+            salvar();                       // proximoId continua o mesmo (ID excluido nao volta)
             printf("Produto excluido!\n");
             return;
         }
@@ -233,35 +226,60 @@ void ordenar() {
     tabela(idx, total);
 }
 
+void comprar() {
+    int busca, qtd, i;
+
+    printf("Digite o ID do produto que quer comprar: ");
+    scanf("%d", &busca);
+    limparBuffer();
+
+    for (i = 0; i < total; i++) {
+        if (codigo[i] == busca) {
+            printf("Quantidade a comprar: ");
+            scanf("%d", &qtd);
+            limparBuffer();
+            if (qtd <= 0 || qtd > quantidade[i]) {  // valida a quantidade
+                printf("Quantidade invalida ou estoque insuficiente (estoque: %d).\n", quantidade[i]);
+                return;
+            }
+            quantidade[i] = quantidade[i] - qtd;    // diminui do estoque
+            salvar();
+            printf("Compra realizada! Total: R$ %.2f\n", qtd * preco[i]);
+            return;
+        }
+    }
+    printf("ID nao encontrado.\n");
+}
+
 int main() {
     int opcao;
 
-    carregar();                             // carrega dados do arquivo
+    carregar();                             // carrega dados (cria o arquivo se nao existir)
 
     do {
         printf("\nMercadinho UNICID\n");
-        printf("1 - Criar arquivo vazio\n");
-        printf("2 - Listar produtos\n");
-        printf("3 - Inserir produto\n");
-        printf("4 - Alterar produto\n");
-        printf("5 - Excluir produto\n");
-        printf("6 - Buscar por nome\n");
-        printf("7 - Buscar por categoria\n");
-        printf("8 - Listar ordenado por nome (Bubble)\n");
+        printf("1 - Listar produtos\n");
+        printf("2 - Inserir produto\n");
+        printf("3 - Alterar produto\n");
+        printf("4 - Excluir produto\n");
+        printf("5 - Buscar por nome\n");
+        printf("6 - Buscar por categoria\n");
+        printf("7 - Listar ordenado por nome (Bubble Sort)\n");
+        printf("8 - Comprar produto\n");
         printf("0 - Sair\n");
         printf("Escolha: ");
         scanf("%d", &opcao);
         limparBuffer();
 
         switch (opcao) {                    // escolhe a acao conforme a opcao
-            case 1: criarArquivo(); break;
-            case 2: listar(); break;
-            case 3: inserir(); break;
-            case 4: alterar(); break;
-            case 5: excluir(); break;
-            case 6: buscar(1); break;
-            case 7: buscar(2); break;
-            case 8: ordenar(); break;
+            case 1: listar(); break;
+            case 2: inserir(); break;
+            case 3: alterar(); break;
+            case 4: excluir(); break;
+            case 5: buscar(1); break;       // busca por nome
+            case 6: buscar(2); break;       // busca por categoria
+            case 7: ordenar(); break;
+            case 8: comprar(); break;
             case 0: printf("Sair\n"); break;
             default: printf("Opcao nao encontrada\n");
         }
